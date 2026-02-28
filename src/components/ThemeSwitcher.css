@@ -1,0 +1,380 @@
+.theme-switcher {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  gap: 0;
+  transition: border-color 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+              background 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+              transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  will-change: transform;
+}
+
+.theme-switcher:has(.theme-icon--active) {
+  transform: scale(1.04);
+}
+
+.theme-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 6px;
+  cursor: pointer;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  background: transparent;
+  color: var(--ink-700);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  overflow: hidden;
+  outline: none;
+}
+
+.theme-icon:focus,
+.theme-icon:focus-visible {
+  outline: none;
+}
+
+/* Свечение контейнера при активной кнопке */
+.theme-switcher::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-pill);
+  pointer-events: none;
+  opacity: 0;
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0);
+  transition: box-shadow 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+              opacity 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.theme-switcher:has(.theme-icon--active)::after {
+  opacity: 1;
+  box-shadow: 0 0 16px rgba(59, 130, 246, 0.2),
+              inset 0 0 12px rgba(59, 130, 246, 0.1);
+}
+
+/* Цвет неактивной иконки */
+.theme-icon:not(.theme-icon--active) {
+  color: var(--ink-700);
+}
+
+/* Радиальное свечение при активации */
+.theme-icon::before {
+  content: "";
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.25) 0%, transparent 75%);
+  opacity: 0;
+  transition: opacity 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.theme-icon svg {
+  width: 100%;
+  height: 100%;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), 
+              opacity 0.3s ease,
+              filter 0.3s ease;
+  position: relative;
+  z-index: 1;
+}
+
+/* Sun icon animations */
+.sun-icon .sun-core {
+  transition: r 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.sun-icon .sun-rays line {
+  transition: stroke-width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+              opacity 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform-origin: 12px 12px;
+}
+
+.theme-icon--sun.theme-icon--active .sun-rays line {
+  animation: sun-rays-spin 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Moon icon animations */
+.moon-icon .moon-shape {
+  transition: d 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.moon-icon .moon-stars circle {
+  transition: opacity 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+              r 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.theme-icon--moon.theme-icon--active .moon-stars circle {
+  animation: twinkle 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.theme-icon:not(.theme-icon--active):hover {
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.12) 0%, rgba(59, 130, 246, 0.04) 100%);
+  border-color: var(--primary-500);
+  color: var(--text-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 0 16px rgba(59, 130, 246, 0.2);
+}
+
+.theme-icon:not(.theme-icon--active):hover svg {
+  transform: rotate(30deg) scale(1.12);
+  filter: drop-shadow(0 3px 8px rgba(59, 130, 246, 0.25));
+}
+
+/* Hover effects for sun icon */
+.theme-icon--sun:not(.theme-icon--active):hover .sun-rays line {
+  stroke-width: 2.2;
+}
+
+.theme-icon--sun:not(.theme-icon--active):hover .sun-core {
+  r: 5;
+}
+
+/* Hover effects for moon icon */
+.theme-icon--moon:not(.theme-icon--active):hover .moon-stars circle {
+  opacity: 0.6;
+}
+
+.theme-icon--active {
+  background: radial-gradient(circle at center, var(--primary-500) 0%, var(--primary-600) 80%, var(--primary-700) 100%);
+  border-color: rgba(59, 130, 246, 0.6);
+  color: white;
+  box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.15),
+              0 4px 16px rgba(59, 130, 246, 0.35),
+              inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  animation: theme-button-pulse 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.theme-icon--active::before {
+  opacity: 1;
+  animation: theme-glow-pulse 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.theme-icon--active svg {
+  animation: theme-icon-morph 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+  filter: drop-shadow(0 2px 6px rgba(255, 255, 255, 0.3));
+}
+
+.theme-icon--active:hover {
+  background: radial-gradient(circle at center, var(--primary-600) 0%, var(--primary-700) 80%, var(--primary-800) 100%);
+  border-color: rgba(59, 130, 246, 0.8);
+  box-shadow: 0 0 0 8px rgba(59, 130, 246, 0.2),
+              0 6px 24px rgba(59, 130, 246, 0.5),
+              inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.theme-icon--active:hover svg {
+  transform: rotate(40deg) scale(1.15) translateY(-1px);
+  filter: drop-shadow(0 4px 10px rgba(255, 255, 255, 0.4));
+}
+
+/* Анимация: Пульс кнопки при активации */
+@keyframes theme-button-pulse {
+  0% {
+    transform: scale(0.75);
+    opacity: 0.5;
+  }
+  20% {
+    transform: scale(1.2);
+  }
+  40% {
+    transform: scale(0.98);
+  }
+  60% {
+    transform: scale(1.08);
+  }
+  80% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Анимация: Сияние вокруг активной кнопки */
+@keyframes theme-glow-pulse {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  30% {
+    opacity: 0.8;
+  }
+  70% {
+    opacity: 0.2;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.2);
+  }
+}
+
+/* Вращение иконки на 360° с масштабированием */
+@keyframes theme-icon-morph {
+  0% {
+    transform: rotate(0deg) scale(1) translateX(0);
+    opacity: 1;
+  }
+  20% {
+    transform: rotate(85deg) scale(1.18) translateX(2px);
+    opacity: 0.85;
+  }
+  50% {
+    transform: rotate(180deg) scale(0.92) translateX(-1px);
+    opacity: 0.9;
+  }
+  75% {
+    transform: rotate(280deg) scale(1.12) translateX(1.5px);
+    opacity: 0.97;
+  }
+  100% {
+    transform: rotate(360deg) scale(1) translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Появление неактивной иконки */
+@keyframes theme-icon-reveal {
+  0% {
+    opacity: 0;
+    transform: scale(0.7) rotate(-30deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+/* Исчезновение активной иконки */
+@keyframes theme-icon-fadeout {
+  0% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.7) rotate(-30deg);
+  }
+}
+
+.theme-icon:not(.theme-icon--active) svg {
+  animation: theme-icon-fadeout 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Sun rays spinning animation */
+@keyframes sun-rays-spin {
+  0% {
+    transform: rotate(0deg);
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+    transform: rotate(180deg);
+  }
+  100% {
+    transform: rotate(360deg);
+    opacity: 1;
+  }
+}
+
+/* Moon stars twinkling animation */
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.2;
+    r: 0.6;
+  }
+  50% {
+    opacity: 1;
+    r: 0.9;
+  }
+}
+
+/* Отключить анимации если пользователь их отключил в ОС */
+@media (prefers-reduced-motion: reduce) {
+  .theme-switcher {
+    transition: none;
+  }
+
+  .theme-icon {
+    transition: none;
+  }
+
+  .theme-icon::before {
+    transition: none;
+  }
+
+  .theme-icon svg {
+    transition: none;
+  }
+
+  .theme-icon:hover {
+    transform: none;
+  }
+
+  .theme-icon:hover svg {
+    transform: none;
+    filter: none;
+  }
+
+  .theme-icon--active {
+    animation: none;
+  }
+
+  .theme-icon--active::before {
+    animation: none;
+  }
+
+  .theme-icon--active svg {
+    animation: none;
+    filter: none;
+  }
+
+  .theme-icon--active:hover {
+    transform: none;
+  }
+
+  .theme-icon--active:hover svg {
+    transform: none;
+    filter: none;
+  }
+
+  .theme-icon:not(.theme-icon--active) svg {
+    animation: none;
+  }
+
+  .sun-icon .sun-rays line {
+    animation: none;
+  }
+
+  .moon-icon .moon-stars circle {
+    animation: none;
+  }
+
+  .sun-icon .sun-core {
+    transition: none;
+  }
+
+  .moon-icon .moon-shape {
+    transition: none;
+  }
+
+  .sun-icon .sun-rays line {
+    transition: none;
+  }
+
+  .moon-icon .moon-stars circle {
+    transition: none;
+  }
+}
