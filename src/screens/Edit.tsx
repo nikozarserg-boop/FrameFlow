@@ -1128,6 +1128,7 @@ export default function EditScreen() {
   const [isSaving, setIsSaving] = useState(false);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [previewVolume, setPreviewVolume] = useState(1);
+  const [previewZoom, setPreviewZoom] = useState(1);
   const [error, setError] = useState<string | null>(null);
   const [videoError, setVideoError] = useState<string | null>(null);
   const [eventsError, setEventsError] = useState<string | null>(null);
@@ -1306,6 +1307,13 @@ export default function EditScreen() {
     [runtimeSegments]
   );
 
+  const handlePreviewWheel = useCallback((e: React.WheelEvent<HTMLDivElement>) => {
+    if (!e.ctrlKey && !e.metaKey) return;
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -0.1 : 0.1;
+    setPreviewZoom((prev) => clamp(prev + delta, 0.5, 3));
+  }, []);
+
   const renderPreviewFrame = useCallback(
     (previewMs: number) => {
       if (previewDurationMs <= 0 || timelineDurationMs <= 0) {
@@ -1330,7 +1338,7 @@ export default function EditScreen() {
       if (previewCanvasRef.current) {
         previewCanvasRef.current.style.transform = `translate3d(${txPx.toFixed(
           3
-        )}px, ${tyPx.toFixed(3)}px, 0) scale(${scale.toFixed(6)})`;
+        )}px, ${tyPx.toFixed(3)}px, 0) scale(${(scale * previewZoom).toFixed(6)})`;
       }
 
       if (cursorRef.current) {
@@ -2299,7 +2307,12 @@ export default function EditScreen() {
             </aside>
 
             <div className="editor-preview-column">
-              <div className="preview-stage-viewport" ref={previewStageRef}>
+              <div 
+                className="preview-stage-viewport" 
+                ref={previewStageRef}
+                onWheel={handlePreviewWheel}
+                style={{ cursor: 'grab' }}
+              >
                 <div
                   className="preview-stage"
                   style={

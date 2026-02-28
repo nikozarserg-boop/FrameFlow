@@ -54,9 +54,9 @@ const DEFAULT_STATUS: ExportStatus = {
   finishedAtMs: null,
 };
 
-function formatDate(ms: number | null): string {
+function formatDate(ms: number | null, t: (key: string) => string): string {
   if (!ms || !Number.isFinite(ms)) {
-    return "n/a";
+    return t("export.na");
   }
   return new Date(ms).toLocaleString();
 }
@@ -493,8 +493,8 @@ export default function ExportScreen() {
           </div>
           <div className="export-meta">
             <span>{t("export.projectName")}: {selectedProjectName || t("export.na")}</span>
-            <span>{t("export.started")}: {formatDate(status.startedAtMs)}</span>
-            <span>{t("export.finished")}: {formatDate(status.finishedAtMs)}</span>
+            <span>{t("export.started")}: {formatDate(status.startedAtMs, t)}</span>
+            <span>{t("export.finished")}: {formatDate(status.finishedAtMs, t)}</span>
             <span>{t("export.elapsed")}: {elapsedMs == null ? t("export.na") : formatMs(elapsedMs)}</span>
             <span>{t("export.eta")}: {etaMs == null ? t("export.na") : formatMs(etaMs)}</span>
             <span>{t("export.output")}: {status.outputPath ?? t("export.na")}</span>

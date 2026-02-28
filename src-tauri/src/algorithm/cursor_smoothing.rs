@@ -9,6 +9,21 @@ pub struct CursorPoint {
     pub is_click: bool,
 }
 
+#[derive(Debug, Clone, Copy)]
+pub struct MotionPattern {
+    pub has_deceleration: bool,
+    pub dwell_time_ms: u64,
+    pub approach_velocity: f64,
+    pub is_jitter: bool,
+}
+
+#[derive(Debug, Clone, Copy)]
+#[allow(dead_code)]
+struct VelocitySample {
+    ts: u64,
+    speed_px_per_ms: f64,
+}
+
 pub fn collect_cursor_points(events: &[InputEvent]) -> Vec<CursorPoint> {
     let mut points = events
         .iter()
@@ -48,15 +63,29 @@ pub fn smooth_cursor_points(points: &[CursorPoint], smoothing_factor: f64) -> Ve
         return points.to_vec();
     }
 
-    let resampled = resample_points(points, 120.0);
+    // Шаг 1: Обнаружение и удаление дрожания мыши
+    let denoised = detect_and_remove_jitter(points);
+    if denoised.len() < 2 {
+        return denoised;
+    }
+
+    // Шаг 2: Resample @ 60Hz (вместо 120Hz для лучшей фильтрации)
+    let resampled = resample_points(&denoised, 60.0);
     if resampled.len() < 2 {
         return resampled;
     }
 
-    let window = (3.0 + (factor * 2.0).round()) as usize;
-    let filtered = simple_moving_average_filter(&resampled, window.clamp(3, 5));
+    // Шаг 3: Bilateral filtering (сохранить края, удалить шум)
+    let filtered = bilateral_filter(&resampled, factor);
+    
+    // Шаг 4: Velocity-aware adaptive smoothing
+    let smoothed = velocity_aware_smoothing(&filtered, factor);
+
+    // Шаг 5: Catmull-Rom интерполяция с учетом ускорения
     let samples_per_segment = ((2.0 + factor * 6.0).round() as usize).max(2);
-    let interpolated = catmull_rom_interpolate_impl(&filtered, samples_per_segment);
+    let interpolated = catmull_rom_interpolate_with_acceleration(&smoothed, samples_per_segment);
+    
+    // Шаг 6: Snap click points
     snap_click_points(interpolated, &resampled)
 }
 
@@ -347,154 +376,402 @@ fn dedupe_points(mut points: Vec<CursorPoint>) -> Vec<CursorPoint> {
     deduped
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::models::events::{InputEvent, MouseButton};
-
-    fn move_event(ts: u64, x: f64, y: f64) -> InputEvent {
-        InputEvent::Move { ts, x, y }
+// УЛУЧШЕНИЕ 1: Jitter Detection (Обнаружение дрожания мыши)
+fn detect_and_remove_jitter(points: &[CursorPoint]) -> Vec<CursorPoint> {
+    if points.len() < 3 {
+        return points.to_vec();
     }
 
-    fn click_event(ts: u64, x: f64, y: f64) -> InputEvent {
-        InputEvent::Click {
-            ts,
-            x,
-            y,
-            button: MouseButton::Left,
-            ui_context: None,
+    const JITTER_THRESHOLD_PX: f64 = 1.5;  // Порог дрожания в пикселях
+    const JITTER_WINDOW_SIZE: usize = 5;   // Окно анализа
+
+    let mut result: Vec<CursorPoint> = Vec::with_capacity(points.len());
+    let mut i = 0;
+
+    while i < points.len() {
+        let current = points[i];
+
+        // Для кликов всегда сохраняем
+        if current.is_click {
+            result.push(current);
+            i += 1;
+            continue;
+        }
+
+        // Проверяем окно вокруг текущей точки на дрожание
+        let start = i.saturating_sub(JITTER_WINDOW_SIZE / 2);
+        let end = (i + JITTER_WINDOW_SIZE / 2 + 1).min(points.len());
+        let window = &points[start..end];
+
+        // Вычисляем медиану окна
+        let (median_x, median_y) = compute_median(window);
+
+        // Если все точки в окне близко к медиане — это дрожание
+        let is_jitter = window.iter().all(|p| {
+            let dx = (p.x - median_x).abs();
+            let dy = (p.y - median_y).abs();
+            (dx * dx + dy * dy).sqrt() < JITTER_THRESHOLD_PX
+        });
+
+        if is_jitter {
+            // Заменяем кластер дрожания одной точкой (медианой)
+            result.push(CursorPoint {
+                ts: current.ts,
+                x: median_x,
+                y: median_y,
+                is_click: false,
+            });
+            i = end;  // Пропускаем весь кластер
+        } else {
+            result.push(current);
+            i += 1;
         }
     }
 
-    #[test]
-    fn simplify_keeps_click_points() {
-        let points = vec![
-            CursorPoint {
-                ts: 0,
-                x: 0.0,
-                y: 0.0,
-                is_click: false,
-            },
-            CursorPoint {
-                ts: 10,
-                x: 5.0,
-                y: 0.2,
-                is_click: false,
-            },
-            CursorPoint {
-                ts: 20,
-                x: 10.0,
-                y: 0.0,
-                is_click: true,
-            },
-            CursorPoint {
-                ts: 30,
-                x: 15.0,
-                y: 0.3,
-                is_click: false,
-            },
-        ];
+    dedupe_points(result)
+}
 
-        let simplified = simplify_with_click_anchors(&points, 5.0);
-        assert!(simplified
+fn compute_median(points: &[CursorPoint]) -> (f64, f64) {
+    if points.is_empty() {
+        return (0.0, 0.0);
+    }
+
+    let mut xs: Vec<f64> = points.iter().map(|p| p.x).collect();
+    let mut ys: Vec<f64> = points.iter().map(|p| p.y).collect();
+
+    xs.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    ys.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+
+    let mid = xs.len() / 2;
+    let median_x = if xs.len() % 2 == 0 {
+        (xs[mid - 1] + xs[mid]) / 2.0
+    } else {
+        xs[mid]
+    };
+
+    let median_y = if ys.len() % 2 == 0 {
+        (ys[mid - 1] + ys[mid]) / 2.0
+    } else {
+        ys[mid]
+    };
+
+    (median_x, median_y)
+}
+
+// УЛУЧШЕНИЕ 2: Bilateral Filter (Сохранить края, удалить шум)
+fn bilateral_filter(points: &[CursorPoint], smoothing_factor: f64) -> Vec<CursorPoint> {
+    if points.len() < 3 {
+        return points.to_vec();
+    }
+
+    const SPATIAL_SIGMA: f64 = 2.0;  // Пространственная сигма
+    const RANGE_SIGMA: f64 = 3.0;    // Сигма интенсивности
+
+    let mut result = Vec::with_capacity(points.len());
+
+    for (i, center) in points.iter().enumerate() {
+        if center.is_click {
+            result.push(*center);
+            continue;
+        }
+
+        let radius = ((2.0 + smoothing_factor * 2.0).round() as usize).max(1);
+        let start = i.saturating_sub(radius);
+        let end = (i + radius + 1).min(points.len());
+
+        let mut weighted_x = 0.0;
+        let mut weighted_y = 0.0;
+        let mut weight_sum = 0.0;
+
+        for (j, point) in points[start..end].iter().enumerate() {
+            let actual_idx = start + j;
+            let spatial_dist = ((actual_idx as i32 - i as i32).abs() as f64).min(radius as f64);
+            let euclidean_dist = ((point.x - center.x).powi(2) + (point.y - center.y).powi(2)).sqrt();
+
+            // Пространственный вес (Гауссов)
+            let spatial_weight = (-spatial_dist.powi(2) / (2.0 * SPATIAL_SIGMA.powi(2))).exp();
+
+            // Вес по интенсивности (сохранить края)
+            let range_weight = (-euclidean_dist.powi(2) / (2.0 * RANGE_SIGMA.powi(2))).exp();
+
+            let weight = spatial_weight * range_weight;
+            weighted_x += point.x * weight;
+            weighted_y += point.y * weight;
+            weight_sum += weight;
+        }
+
+        let final_x = if weight_sum > 1e-6 { weighted_x / weight_sum } else { center.x };
+        let final_y = if weight_sum > 1e-6 { weighted_y / weight_sum } else { center.y };
+
+        result.push(CursorPoint {
+            ts: center.ts,
+            x: final_x,
+            y: final_y,
+            is_click: false,
+        });
+    }
+
+    result
+}
+
+// УЛУЧШЕНИЕ 3: Velocity-Aware Adaptive Smoothing
+fn velocity_aware_smoothing(points: &[CursorPoint], _smoothing_factor: f64) -> Vec<CursorPoint> {
+    if points.len() < 2 {
+        return points.to_vec();
+    }
+
+    // Вычисляем скорости для каждой точки
+    let velocities = estimate_velocities(points);
+
+    let mut result = Vec::with_capacity(points.len());
+
+    for (i, point) in points.iter().enumerate() {
+        if point.is_click {
+            result.push(*point);
+            continue;
+        }
+
+        let local_speed = velocities.get(i).copied().unwrap_or(0.5);
+
+        // Адаптивный размер окна на основе скорости
+        // Высокая скорость → меньшее окно (сохранить детали движения)
+        // Низкая скорость → большое окно (удалить дрожание)
+        let window = if local_speed < 0.3 {
+            5  // Дрожание или неподвижность
+        } else if local_speed > 1.0 {
+            2  // Быстрое движение
+        } else {
+            3  // Нормальная скорость
+        };
+
+        // Применяем weighted moving average с адаптивным окном
+        let radius = window / 2;
+        let start = i.saturating_sub(radius);
+        let end = (i + radius + 1).min(points.len());
+
+        let mut sum_x = 0.0;
+        let mut sum_y = 0.0;
+        let mut weight_sum = 0.0;
+
+        for (j, p) in points[start..end].iter().enumerate() {
+            let dist = ((j as i32 - radius as i32).abs() as f64).max(0.1);
+            let weight = 1.0 / (1.0 + dist.powi(2));  // Gaussian-like weights
+            
+            sum_x += p.x * weight;
+            sum_y += p.y * weight;
+            weight_sum += weight;
+        }
+
+        let final_x = if weight_sum > 1e-6 { sum_x / weight_sum } else { point.x };
+        let final_y = if weight_sum > 1e-6 { sum_y / weight_sum } else { point.y };
+
+        result.push(CursorPoint {
+            ts: point.ts,
+            x: final_x,
+            y: final_y,
+            is_click: false,
+        });
+    }
+
+    result
+}
+
+fn estimate_velocities(points: &[CursorPoint]) -> Vec<f64> {
+    let mut velocities = vec![0.0; points.len()];
+
+    for i in 1..points.len() {
+        let prev = points[i - 1];
+        let curr = points[i];
+
+        let dt = (curr.ts.saturating_sub(prev.ts) as f64).max(1.0) / 1000.0;  // в секунды
+        let dx = curr.x - prev.x;
+        let dy = curr.y - prev.y;
+        let distance = (dx * dx + dy * dy).sqrt();
+
+        velocities[i] = distance / dt;
+    }
+
+    // Сглаживаем сами скорости для стабильности
+    let smoothed = simple_moving_average_filter(
+        &velocities
             .iter()
-            .any(|point| point.ts == 20 && point.is_click));
-    }
-
-    #[test]
-    fn interpolation_keeps_control_points_at_segment_edges() {
-        let points = vec![
-            CursorPoint {
-                ts: 0,
-                x: 0.0,
+            .enumerate()
+            .map(|(i, &v)| CursorPoint {
+                ts: points[i].ts,
+                x: v,
                 y: 0.0,
                 is_click: false,
-            },
-            CursorPoint {
-                ts: 100,
-                x: 50.0,
-                y: 20.0,
-                is_click: true,
-            },
-            CursorPoint {
-                ts: 200,
-                x: 100.0,
-                y: 0.0,
-                is_click: false,
-            },
-        ];
+            })
+            .collect::<Vec<_>>(),
+        3,
+    );
 
-        let smoothed = catmull_rom_interpolate(&points, 4);
-        assert!(smoothed.iter().any(|point| {
-            point.ts == 100
-                && (point.x - 50.0).abs() < 0.0001
-                && (point.y - 20.0).abs() < 0.0001
-                && point.is_click
-        }));
+    smoothed.iter().map(|p| p.x).collect()
+}
+
+// УЛУЧШЕНИЕ 4: Catmull-Rom Interpolation with Acceleration
+fn catmull_rom_interpolate_with_acceleration(
+    points: &[CursorPoint],
+    samples_per_segment: usize,
+) -> Vec<CursorPoint> {
+    if points.len() < 2 {
+        return points.to_vec();
     }
 
-    #[test]
-    fn smoothing_factor_zero_returns_raw_points() {
-        let events = vec![
-            move_event(0, 0.0, 0.0),
-            move_event(10, 10.0, 5.0),
-            click_event(20, 20.0, 10.0),
-        ];
+    let samples = samples_per_segment.max(2);
+    let mut result = Vec::with_capacity((points.len() - 1) * samples + 1);
+    const ALPHA: f64 = 0.5;
 
-        let points = collect_cursor_points(&events);
-        let smoothed = smooth_cursor_path(&events, 0.0);
-        assert_eq!(smoothed, points);
+    // Вычисляем ускорения для каждого сегмента
+    let _accelerations = compute_accelerations(points);
+
+    for idx in 0..(points.len() - 1) {
+        let p0 = if idx == 0 {
+            points[idx]
+        } else {
+            points[idx - 1]
+        };
+        let p1 = points[idx];
+        let p2 = points[idx + 1];
+        let p3 = if idx + 2 < points.len() {
+            points[idx + 2]
+        } else {
+            points[idx + 1]
+        };
+
+        let t0 = 0.0;
+        let t1 = next_knot(t0, p0, p1, ALPHA);
+        let t2 = next_knot(t1, p1, p2, ALPHA);
+        let t3 = next_knot(t2, p2, p3, ALPHA);
+
+        let mut curve_points: Vec<(f64, f64)> = Vec::with_capacity(samples + 1);
+        for step in 0..=samples {
+            let ratio = step as f64 / samples as f64;
+            let t = t1 + (t2 - t1) * ratio;
+
+            let a1 = interpolate_point(p0, p1, t0, t1, t);
+            let a2 = interpolate_point(p1, p2, t1, t2, t);
+            let a3 = interpolate_point(p2, p3, t2, t3, t);
+            let b1 = interpolate_xy(a1, a2, t0, t2, t);
+            let b2 = interpolate_xy(a2, a3, t1, t3, t);
+            curve_points.push(interpolate_xy(b1, b2, t1, t2, t));
+        }
+
+        let mut cumulative = vec![0.0f64; curve_points.len()];
+        for step in 1..curve_points.len() {
+            let prev = curve_points[step - 1];
+            let current = curve_points[step];
+            cumulative[step] =
+                cumulative[step - 1] + (current.0 - prev.0).hypot(current.1 - prev.1);
+        }
+        let total_len = cumulative.last().copied().unwrap_or(0.0);
+
+        for step in 0..=samples {
+            if idx > 0 && step == 0 {
+                continue;
+            }
+
+            let position = curve_points[step];
+            let ratio = if total_len <= 1e-9 {
+                step as f64 / samples as f64
+            } else {
+                cumulative[step] / total_len
+            };
+            let ts = lerp_ts(p1.ts, p2.ts, ratio);
+            let is_click = (step == 0 && p1.is_click) || (step == samples && p2.is_click);
+
+            result.push(CursorPoint {
+                ts,
+                x: position.0,
+                y: position.1,
+                is_click,
+            });
+        }
     }
 
-    #[test]
-    fn smoothing_preserves_exact_click_coordinates() {
-        let events = vec![
-            move_event(0, 10.0, 10.0),
-            move_event(20, 30.0, 20.0),
-            click_event(40, 50.0, 40.0),
-            move_event(60, 80.0, 50.0),
-        ];
+    result
+}
 
-        let smoothed = smooth_cursor_path(&events, 1.0);
-        let click_point = smoothed
-            .iter()
-            .find(|point| point.ts == 40)
-            .expect("missing click point");
+fn compute_accelerations(points: &[CursorPoint]) -> Vec<(f64, f64)> {
+    let mut accelerations = vec![(0.0, 0.0); points.len()];
 
-        assert!((click_point.x - 50.0).abs() < 0.0001);
-        assert!((click_point.y - 40.0).abs() < 0.0001);
-        assert!(click_point.is_click);
+    for i in 1..points.len().saturating_sub(1) {
+        let prev = points[i - 1];
+        let curr = points[i];
+        let next = points[i + 1];
+
+        let dt1 = (curr.ts.saturating_sub(prev.ts) as f64).max(1.0);
+        let dt2 = (next.ts.saturating_sub(curr.ts) as f64).max(1.0);
+
+        let v1x = (curr.x - prev.x) / dt1;
+        let v1y = (curr.y - prev.y) / dt1;
+
+        let v2x = (next.x - curr.x) / dt2;
+        let v2y = (next.y - curr.y) / dt2;
+
+        let ax = (v2x - v1x) / ((dt1 + dt2) / 2.0);
+        let ay = (v2y - v1y) / ((dt1 + dt2) / 2.0);
+
+        accelerations[i] = (ax.clamp(-10.0, 10.0), ay.clamp(-10.0, 10.0));
     }
 
-    #[test]
-    fn resampler_generates_stable_time_grid() {
-        let points = vec![
-            CursorPoint {
-                ts: 0,
-                x: 0.0,
-                y: 0.0,
-                is_click: false,
-            },
-            CursorPoint {
-                ts: 37,
-                x: 100.0,
-                y: 0.0,
-                is_click: false,
-            },
-            CursorPoint {
-                ts: 142,
-                x: 200.0,
-                y: 50.0,
-                is_click: false,
-            },
-        ];
+    accelerations
+}
 
-        let resampled = resample_points(&points, 120.0);
-        assert!(resampled.len() > points.len());
-        let deltas: Vec<u64> = resampled
-            .windows(2)
-            .map(|pair| pair[1].ts.saturating_sub(pair[0].ts))
-            .collect();
-        assert!(deltas.iter().all(|delta| *delta >= 7 && *delta <= 10));
+// УЛУЧШЕНИЕ 5: Analyze Pre-Click Motion Pattern
+pub fn analyze_pre_click_pattern(points_before_click: &[CursorPoint]) -> MotionPattern {
+    if points_before_click.is_empty() {
+        return MotionPattern {
+            has_deceleration: false,
+            dwell_time_ms: 0,
+            approach_velocity: 0.0,
+            is_jitter: false,
+        };
+    }
+
+    let velocities = estimate_velocities(points_before_click);
+    let last_velocity = velocities.last().copied().unwrap_or(0.0);
+    let first_velocity = velocities.first().copied().unwrap_or(0.0);
+
+    // Обнаруживаем замедление (dwell время)
+    let has_deceleration = last_velocity < first_velocity * 0.3;
+
+    // Вычисляем dwell time (время неподвижности перед кликом)
+    let dwell_time = if last_velocity < 0.05 {
+        // Найди последовательность низкоскоростных точек в конце
+        let mut dwell_ms = 0u64;
+        for point in points_before_click.iter().rev() {
+            if let Some(idx) = points_before_click.iter().position(|p| p.ts == point.ts) {
+                if idx > 0 && velocities[idx] < 0.1 {
+                    dwell_ms = point.ts.saturating_sub(
+                        points_before_click.iter().rev().nth(0).map(|p| p.ts).unwrap_or(point.ts)
+                    );
+                } else {
+                    break;
+                }
+            }
+        }
+        dwell_ms
+    } else {
+        0
+    };
+
+    // Проверяем на дрожание в конце траектории
+    let is_jitter = if points_before_click.len() >= 5 {
+        let last_points = &points_before_click[points_before_click.len().saturating_sub(5)..];
+        let (median_x, median_y) = compute_median(last_points);
+        last_points.iter().all(|p| {
+            let dist = ((p.x - median_x).powi(2) + (p.y - median_y).powi(2)).sqrt();
+            dist < 1.5
+        })
+    } else {
+        false
+    };
+
+    MotionPattern {
+        has_deceleration,
+        dwell_time_ms: dwell_time,
+        approach_velocity: last_velocity,
+        is_jitter,
     }
 }

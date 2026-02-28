@@ -103,9 +103,10 @@ pub struct SmartCameraConfig {
 
 impl Default for SmartCameraConfig {
     fn default() -> Self {
-        let mass = 1.0;
-        let stiffness = 170.0;
-        let damping = Spring::critical_damping(stiffness, mass);
+        // Оптимизированные параметры для более плавного движения камеры
+        let mass = 1.5;           // Увеличена инертия для более мягких движений
+        let stiffness = 100.0;    // Снижена жесткость (было 170.0)
+        let damping = Spring::critical_damping(stiffness, mass) * 1.2; // Усилено затухание
         Self {
             fixed_dt_ms: 8,
             dead_zone_ratio: 0.40,

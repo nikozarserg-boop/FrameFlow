@@ -3,12 +3,13 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding: 14px;
+  gap: clamp(10px, 2vw, 14px);
+  padding: clamp(10px, 2vw, 14px);
   border-radius: var(--radius-lg);
   border: 1px solid var(--line);
   background: var(--surface-1);
   overflow: hidden;
+  font-size: clamp(13px, 1.5vw, 16px);
 }
 
 .edit-shell .btn-primary {
@@ -33,14 +34,15 @@
 }
 
 .editor-toolbar {
-  width: min(700px, 100%);
+  width: min(clamp(500px, 90vw, 700px), 100%);
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px;
+  gap: clamp(8px, 1.5vw, 10px);
+  padding: clamp(8px, 1.5vw, 10px);
   border-radius: var(--radius-md);
   border: 1px solid var(--line);
   background: var(--surface-2);
+  flex-wrap: wrap;
 }
 
 .project-picker {
@@ -124,9 +126,10 @@
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: minmax(260px, 300px) minmax(0, 1fr);
-  gap: 12px;
+  grid-template-columns: minmax(clamp(240px, 20vw, 300px), clamp(260px, 25vw, 350px)) minmax(0, 1fr);
+  gap: clamp(8px, 1.5vw, 12px);
   overflow: hidden;
+  resize: horizontal;
 }
 
 .editor-sidebar,
@@ -148,8 +151,8 @@
 .sidebar-project-toolbar,
 .sidebar-controls {
   display: grid;
-  gap: 10px;
-  padding: 10px;
+  gap: clamp(8px, 1.5vw, 10px);
+  padding: clamp(8px, 1.5vw, 10px);
   border-radius: 10px;
   border: 1px solid var(--line);
   background: var(--surface-1);
