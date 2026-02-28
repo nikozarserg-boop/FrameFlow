@@ -104,7 +104,7 @@ fn cursor_assets_root() -> Result<PathBuf, String> {
     let base = dirs::video_dir()
         .or_else(|| dirs::home_dir().map(|home| home.join("Videos")))
         .ok_or("Failed to resolve Videos directory")?;
-    Ok(base.join("NeuroScreenCaster").join("cursor"))
+    Ok(base.join("FrameFlow").join("cursor"))
 }
 
 fn pick_cursor_source_file(root: &Path) -> Result<Option<PathBuf>, String> {

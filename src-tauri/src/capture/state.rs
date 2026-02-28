@@ -55,7 +55,7 @@ pub struct ActiveRecording {
     pub pause_flag: Arc<AtomicBool>,
     /// Поток захвата WGC; выходит когда флаг остановки зафиксирован.
     pub capture_thread: std::thread::JoinHandle<Result<(), String>>,
-    /// Папка проекта: `{Videos}/NeuroScreenCaster/{recording_id}/`
+    /// Папка проекта: `{Videos}/FrameFlow/{recording_id}/`
     pub output_dir: PathBuf,
     pub width: u32,
     pub height: u32,

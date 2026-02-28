@@ -7,7 +7,7 @@ if "%1"=="clean" set CLEAN_BUILD=1
 
 echo.
 echo ============================================
-echo   NeuroScreenCaster Build Script
+echo   FrameFlow Build Script
 if %CLEAN_BUILD% equ 1 (
     echo   [CLEAN BUILD MODE]
 ) else (
@@ -133,15 +133,15 @@ set src_exe=
 set installer_found=0
 
 REM Проверка основного расположения
-if exist "%CARGO_TARGET_DIR%\release\neuroscreencaster.exe" (
-    set "src_exe=%CARGO_TARGET_DIR%\release\neuroscreencaster.exe"
+if exist "%CARGO_TARGET_DIR%\release\frameflow.exe" (
+    set "src_exe=%CARGO_TARGET_DIR%\release\frameflow.exe"
     set exe_found=1
 )
 
 REM Если не найдено, проверить альтернативное расположение
 if %exe_found% equ 0 (
-    if exist "%PROJECT_ROOT%src-tauri\target\release\neuroscreencaster.exe" (
-        set "src_exe=%PROJECT_ROOT%src-tauri\target\release\neuroscreencaster.exe"
+    if exist "%PROJECT_ROOT%src-tauri\target\release\frameflow.exe" (
+        set "src_exe=%PROJECT_ROOT%src-tauri\target\release\frameflow.exe"
         set exe_found=1
         echo [WARNING] Using src-tauri/target/release (fallback)
     )
@@ -151,7 +151,7 @@ REM Копирование основного исполняемого файл�
 if %exe_found% equ 1 (
     copy /y "!src_exe!" "%PROJECT_ROOT%dist\"
     if %errorlevel% equ 0 (
-        echo [OK] Copied: neuroscreencaster.exe to dist\
+        echo [OK] Copied: frameflow.exe to dist\
     ) else (
         echo [ERROR] Failed to copy executable
         exit /b 1
@@ -219,12 +219,12 @@ echo   Build completed successfully!
 echo ============================================
 echo.
 echo Output directories:
-echo   Main executable: %PROJECT_ROOT%dist\neuroscreencaster.exe
+echo   Main executable: %PROJECT_ROOT%dist\frameflow.exe
 echo.
 if exist "%PROJECT_ROOT%dist\setup" (
     echo   Installers: %PROJECT_ROOT%dist\setup\
-    echo   - NeuroScreenCaster_0.1.4_x64_en-US.msi
-    echo   - NeuroScreenCaster_0.1.4_x64-setup.exe
+    echo   - FrameFlow_0.1.5_x64_en-US.msi
+    echo   - FrameFlow_0.1.5_x64-setup.exe
     echo.
 )
 echo Frontend sources: %PROJECT_ROOT%build\frontend\

@@ -17,7 +17,7 @@ function usage() {
       "Options:",
       "  --latest             Force auto-select latest project from root (default).",
       "  --project <path>     Path to project directory or project.json.",
-      "  --root <path>        Projects root (default: ~/Videos/NeuroScreenCaster).",
+      "  --root <path>        Projects root (default: ~/Videos/FrameFlow).",
       "  --check-export       Validate latest export-*.mp4 in project folder.",
       "  --help               Show this help.",
     ].join("\n")
@@ -29,7 +29,7 @@ function parseArgs(argv) {
     latest: false,
     checkExport: false,
     projectPath: null,
-    rootPath: path.join(os.homedir(), "Videos", "NeuroScreenCaster"),
+    rootPath: path.join(os.homedir(), "Videos", "FrameFlow"),
   };
 
   for (let index = 0; index < argv.length; index += 1) {

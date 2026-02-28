@@ -58,7 +58,7 @@ try {
   console.log('[INFO] Syncing version: ' + version);
 
   const distPath = path.join(rootDir, 'dist');
-  const exePath = path.join(distPath, 'neuroscreencaster.exe');
+  const exePath = path.join(distPath, 'frameflow.exe');
   const oldExeVersion = getExeVersion(exePath);
 
   if (oldExeVersion && oldExeVersion !== version) {

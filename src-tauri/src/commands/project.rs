@@ -97,7 +97,7 @@ pub async fn get_events(project_path: String) -> Result<EventsFile, String> {
 /// Сохраняет проект в `project.json`.
 ///
 /// Если `project_path` не передан — используется стандартный путь:
-/// `{Videos}/NeuroScreenCaster/{project.id}/project.json`.
+/// `{Videos}/FrameFlow/{project.id}/project.json`.
 #[tauri::command]
 pub async fn save_project(
     project: Project,
@@ -133,7 +133,7 @@ pub async fn save_project(
     Ok(path.to_string_lossy().to_string())
 }
 
-/// Возвращает список проектов из стандартной папки `{Videos}/NeuroScreenCaster`.
+/// Возвращает список проектов из стандартной папки `{Videos}/FrameFlow`.
 #[tauri::command]
 pub async fn list_projects() -> Result<Vec<ProjectListItem>, String> {
     let root = projects_root()?;
@@ -253,5 +253,5 @@ fn projects_root() -> Result<PathBuf, String> {
     let base = dirs::video_dir()
         .or_else(|| dirs::home_dir().map(|h| h.join("Videos")))
         .ok_or("Failed to resolve Videos directory")?;
-    Ok(base.join("NeuroScreenCaster"))
+    Ok(base.join("FrameFlow"))
 }

@@ -388,13 +388,13 @@ pub async fn resume_recording(
     Ok(())
 }
 
-/// Path to project directory: `{Videos}/NeuroScreenCaster/{id}/`.
+/// Path to project directory: `{Videos}/FrameFlow/{id}/`.
 fn project_dir(recording_id: &str) -> Result<std::path::PathBuf, String> {
     let base = dirs::video_dir()
         .or_else(|| dirs::home_dir().map(|h| h.join("Videos")))
         .ok_or("Failed to resolve Videos directory")?;
 
-    Ok(base.join("NeuroScreenCaster").join(recording_id))
+    Ok(base.join("FrameFlow").join(recording_id))
 }
 
 fn sanitize_recording_fps(raw_fps: u32) -> u32 {

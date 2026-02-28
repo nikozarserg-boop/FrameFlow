@@ -11,7 +11,7 @@ npm run qa:smoke
 Run against a specific project:
 
 ```bash
-npm run qa:smoke -- --project "C:\\Users\\<you>\\Videos\\NeuroScreenCaster\\<id>\\project.json"
+npm run qa:smoke -- --project "C:\\Users\\<you>\\Videos\\FrameFlow\\<id>\\project.json"
 ```
 
 Optional export file validation:

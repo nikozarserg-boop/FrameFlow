@@ -155,15 +155,15 @@ export default function Navigation({ currentScreen, onNavigate }: NavigationProp
       <div className="nav-shell">
         <div
           className="nav-brand"
-          aria-label="NeuroScreenCaster"
+          aria-label="FrameFlow"
           data-tauri-drag-region
           onDoubleClick={() => handleToggleMaximize()}
         >
           <div className="nav-brand-mark">
-            <img className="nav-brand-mark-img" src="/favicon.png" alt="NeuroScreenCaster logo" />
+            <img className="nav-brand-mark-img" src="/favicon.png" alt="FrameFlow logo" />
           </div>
           <div className="nav-brand-copy">
-            <span className="nav-title">NeuroScreenCaster</span>
+            <span className="nav-title">FrameFlow</span>
             <span className="nav-subtitle">Operator Grid</span>
           </div>
         </div>

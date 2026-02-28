@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "events.schema.json",
   "title": "EventsFile",
-  "description": "NeuroScreenCaster telemetry events — schemaVersion 1",
+  "description": "FrameFlow telemetry events — schemaVersion 1",
   "type": "object",
   "required": [
     "schemaVersion",

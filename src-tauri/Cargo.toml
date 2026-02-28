@@ -1,10 +1,10 @@
 [package]
-name = "neuroscreencaster"
+name = "frameflow"
 version = "0.1.5"
 edition = "2021"
 
 [lib]
-name = "neuroscreencaster_lib"
+name = "frameflow_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]

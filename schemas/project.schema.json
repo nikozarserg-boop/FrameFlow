@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "project.schema.json",
   "title": "Project",
-  "description": "NeuroScreenCaster project — schemaVersion 1",
+  "description": "FrameFlow project — schemaVersion 1",
   "type": "object",
   "required": [
     "schemaVersion",
