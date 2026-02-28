@@ -1,67 +1,67 @@
-# QA Checklist (Stage 7)
+# Чеклист QA (Этап 7)
 
-## Automated smoke check
+## Автоматизированная проверка
 
-Run the latest project smoke checks:
+Запустите последнюю проверку проекта:
 
 ```bash
 npm run qa:smoke
 ```
 
-Run against a specific project:
+Запуск для конкретного проекта:
 
 ```bash
-npm run qa:smoke -- --project "C:\\Users\\<you>\\Videos\\FrameFlow\\<id>\\project.json"
+npm run qa:smoke -- --project "C:\\Users\\<вы>\\Videos\\FrameFlow\\<id>\\project.json"
 ```
 
-Optional export file validation:
+Опциональная проверка файла экспорта:
 
 ```bash
 npm run qa:smoke -- --check-export
 ```
 
-What it checks:
+Что проверяется:
 
-- `project.json` and `events.json` schema/version sanity.
-- `project.id` vs `events.recordingId` consistency.
-- Source video probe (duration, resolution, fps) via FFmpeg.
-- Duration sync (`project.durationMs` vs source video duration).
-- Telemetry timeline and timestamp ordering sanity.
-- Cursor coordinate bounds relative to `screenWidth/screenHeight`.
-- `scaleFactor` validity and potential High-DPI logical-coordinate warning.
-- Zoom segment timing and `targetRect` bounds.
+- Корректность схемы и версии `project.json` и `events.json`.
+- Согласованность `project.id` vs `events.recordingId`.
+- Проверка исходного видео (длительность, разрешение, fps) через FFmpeg.
+- Синхронизация длительности (`project.durationMs` vs длительность видео).
+- Проверка временной шкалы телеметрии и порядка временных меток.
+- Границы координат курсора относительно `screenWidth/screenHeight`.
+- Валидность `scaleFactor` и предупреждения о High-DPI логических координатах.
+- Проверка времени сегментов зума и границ `targetRect`.
 
-## Manual E2E checklist (Record -> Edit -> Export)
+## Ручной E2E чеклист (Запись -> Редактирование -> Экспорт)
 
-1. Record a 10-20s clip with clicks near all corners and center.
-2. Open Edit screen and verify:
-   - Video loads.
-   - Cursor path and click points are visually aligned.
-   - Auto-zoom segments are placed at expected timestamps.
-3. Adjust one zoom segment (move/resize on timeline), save project.
-4. Export MP4 (`h264`, 1080p, 30fps).
-5. Verify exported video:
-   - Zoom transitions are smooth.
-   - Cursor overlay is visible, smooth, and click-aligned.
-   - Duration is close to source (no major drift).
+1. Запишите видео на 10-20 секунд с кликами у всех углов и в центре.
+2. Откройте экран Редактирования и проверьте:
+   - Видео загружается.
+   - Траектория курсора и точки кликов визуально совпадают.
+   - Автоматические сегменты зума размещены в ожидаемых временных метках.
+3. Отредактируйте один сегмент зума (перемещение/изменение размера на таймлайне), сохраните проект.
+4. Экспортируйте в MP4 (`h264`, 1080p, 30fps).
+5. Проверьте экспортированное видео:
+   - Переходы зума плавные.
+   - Наложение курсора видимо, плавно и совпадает с кликами.
+   - Длительность близка к исходной (нет значительного сдвига).
 
-## High-DPI matrix
+## Матрица High-DPI
 
-Run the same scenario at Windows scaling:
+Запустите тот же сценарий с масштабированием Windows:
 
 - 100%
 - 125%
 - 150%
 
-At each scale, verify:
+На каждом масштабе проверьте:
 
-- Cursor and zoom target locations in export match preview.
-- No consistent drift toward corners.
-- `events.json` contains realistic `scaleFactor` (>1.0 for 125/150%).
+- Местоположение курсора и целей зума в экспорте совпадают с предпросмотром.
+- Нет консистентного сдвига к углам.
+- `events.json` содержит реалистичный `scaleFactor` (>1.0 для 125/150%).
 
-## Release preflight
+## Предполетная подготовка перед релизом
 
 1. `npm run build`
-2. `cargo test` in `src-tauri`
+2. `cargo test` в `src-tauri`
 3. `npm run qa:smoke -- --check-export`
-4. One manual E2E pass on a fresh recording
+4. Один ручной E2E проход на свежей записи
