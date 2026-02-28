@@ -88,7 +88,7 @@
   z-index: 1;
 }
 
-/* Sun icon animations */
+/* Анимации иконки солнца */
 .sun-icon .sun-core {
   transition: r 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
@@ -103,7 +103,7 @@
   animation: sun-rays-spin 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
-/* Moon icon animations */
+/* Анимации иконки луны */
 .moon-icon .moon-shape {
   transition: d 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
@@ -130,7 +130,7 @@
   filter: drop-shadow(0 3px 8px rgba(59, 130, 246, 0.25));
 }
 
-/* Hover effects for sun icon */
+/* Эффекты наведения для иконки солнца */
 .theme-icon--sun:not(.theme-icon--active):hover .sun-rays line {
   stroke-width: 2.2;
 }
@@ -139,7 +139,7 @@
   r: 5;
 }
 
-/* Hover effects for moon icon */
+/* Эффекты наведения для иконки луны */
 .theme-icon--moon:not(.theme-icon--active):hover .moon-stars circle {
   opacity: 0.6;
 }
@@ -272,7 +272,7 @@
   animation: theme-icon-fadeout 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* Sun rays spinning animation */
+/* Анимация вращения лучей солнца */
 @keyframes sun-rays-spin {
   0% {
     transform: rotate(0deg);
@@ -288,7 +288,7 @@
   }
 }
 
-/* Moon stars twinkling animation */
+/* Анимация мерцания звёзд луны */
 @keyframes twinkle {
   0%,
   100% {

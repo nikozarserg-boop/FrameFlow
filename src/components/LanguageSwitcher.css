@@ -131,7 +131,7 @@
   background: var(--color-primary-dark, #1e40af);
 }
 
-/* Scrollbar styling */
+/* Стили полосы прокрутки */
 .language-switcher-dropdown::-webkit-scrollbar {
   width: 8px;
 }
@@ -149,7 +149,7 @@
   background: var(--ink-500, #64748b);
 }
 
-/* Firefox scrollbar */
+/* Полоса прокрутки Firefox */
 .language-switcher-dropdown {
   scrollbar-color: var(--line-strong, #c6d3e5) transparent;
   scrollbar-width: thin;

@@ -552,8 +552,8 @@ fn execute_ffmpeg_export(
                 });
             }
 
-            // Last-resort fallback so UI progress is never stuck at 0 on platforms where
-            // ffmpeg runtime stats are delayed or suppressed.
+            // Последний способ fallback так чтобы прогресс UI никогда не застревал на 0 на платформах где
+            // статистика runtime ffmpeg задерживается или подавляется.
             let estimated = (started_at.elapsed().as_millis() as f64 / source_duration_ms as f64)
                 .clamp(0.0, 0.95);
             if estimated > last_reported_progress {
@@ -748,7 +748,7 @@ fn build_export_filter_graph(
     let mut cursor_input_path = None;
     let mut cursor_temp_file = None;
 
-    // Upsample to target FPS before camera transforms to match preview smoothness.
+    // Увеличить частоту до целевого FPS перед трансформациями камеры чтобы соответствовать плавности preview.
     input_chain.push(format!("fps={target_fps}"));
 
     if ENABLE_CUSTOM_CURSOR_OVERLAY_EXPORT {
@@ -1202,8 +1202,8 @@ fn build_camera_value_expr(
         );
         let value = spring_value_expr(&elapsed, axis_state, state.spring);
 
-        // Build a flat sum of disjoint interval terms instead of deeply nested if-expressions.
-        // Nested expressions can exceed FFmpeg parser depth on projects with many segments.
+        // Построить плоскую сумму непересекающихся интервалов вместо глубоко вложенных условных выражений.
+        // Вложенные выражения могут превысить глубину парсера FFmpeg в проектах с множеством сегментов.
         terms.push(format!(
             "if(gte(n,{start})*lt(n,{end}),({value})-({default}),0)",
             start = format_f64(state.start_frame),
@@ -2324,7 +2324,7 @@ struct PreviewCursorPoint {
     y: f64,
 }
 
-// Keep export cursor math aligned with Edit.tsx preview:
+// Сохранить математику курсора экспорта в соответствии с превью Edit.tsx:
 // - same event set (move/click/mouseUp/scroll)
 // - same EMA smoothing formula based on smoothing_factor.
 fn extract_preview_cursor_points(
@@ -2548,7 +2548,7 @@ fn extract_ffmpeg_progress_time_ms(line: &str) -> Option<u64> {
 
     if let Some(raw) = line.strip_prefix("out_time_ms=") {
         let value = raw.trim().parse::<u64>().ok()?;
-        // ffmpeg progress often reports out_time_ms in microseconds.
+        // ffmpeg прогресс часто сообщает out_time_ms в микросекундах.
         return Some(value / 1_000);
     }
 

@@ -15,7 +15,7 @@ use std::time::UNIX_EPOCH;
 
 use crate::models::events::{InputEvent, MouseButton, ScrollDelta};
 
-// ─── Внутренние типы ─────────────────────────────────────────────────────────
+// Внутренние типы
 
 /// Сырые данные одного события ввода, передаваемые из rdev-потока в процессор.
 pub enum RawInput {
@@ -55,7 +55,7 @@ pub enum RawInput {
     Stop,
 }
 
-// ─── Разделяемое глобальное состояние ────────────────────────────────────────
+// Разделяемое глобальное состояние
 
 /// Состояние, разделяемое между rdev-потоком и IPC-командами.
 pub struct TelemetryGlobal {
@@ -64,9 +64,9 @@ pub struct TelemetryGlobal {
     /// Последняя известная позиция мыши.
     /// rdev не передаёт координаты в Button/Wheel-событиях — храним отдельно.
     pub last_pos: Mutex<(f64, f64)>,
-    /// True when recording is paused and incoming events must be ignored.
+    /// True когда запись на паузе и входящие события должны быть проигнорированы.
     pub is_paused: AtomicBool,
-    /// Last observed state of Ctrl modifier from global keyboard hook.
+    /// Последнее наблюдаемое состояние модификатора Ctrl от глобального хука клавиатуры.
     pub is_ctrl_pressed: AtomicBool,
 }
 
@@ -81,10 +81,10 @@ impl TelemetryGlobal {
     }
 }
 
-/// Tauri managed state, оборачивающий `Arc<TelemetryGlobal>`.
+/// Управляемое Tauri состояние, оборачивающее `Arc<TelemetryGlobal>`.
 pub struct TelemetryState(pub Arc<TelemetryGlobal>);
 
-// ─── rdev-поток ───────────────────────────────────────────────────────────────
+// rdev-поток
 
 /// Запускает один фоновый поток с глобальными хуками ввода.
 /// Вызывается ОДИН РАЗ при старте приложения.
@@ -177,7 +177,7 @@ fn handle_rdev_event(global: &Arc<TelemetryGlobal>, event: rdev::Event) {
     }
 }
 
-// ─── Управление сессией ───────────────────────────────────────────────────────
+// Управление сессией
 
 /// Начинает новую сессию телеметрии.
 ///
@@ -291,7 +291,7 @@ pub fn set_paused(global: &Arc<TelemetryGlobal>, paused: bool) {
     global.is_paused.store(paused, Ordering::Relaxed);
 }
 
-// ─── Вспомогательные функции ──────────────────────────────────────────────────
+// Вспомогательные функции
 
 /// Переводит `rdev::Button` в модельный `MouseButton`.
 fn rdev_button(button: rdev::Button) -> MouseButton {

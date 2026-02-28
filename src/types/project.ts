@@ -5,7 +5,7 @@
 
 export const PROJECT_SCHEMA_VERSION = 1 as const;
 
-// --- Примитивы ---
+// Примитивы
 
 /** Прямоугольник в нормализованных координатах [0.0–1.0]. */
 export interface NormalizedRect {
@@ -15,7 +15,7 @@ export interface NormalizedRect {
   height: number;
 }
 
-// --- Таймлайн ---
+// Таймлайн
 
 export interface PanKeyframe {
   ts: number;
@@ -59,7 +59,7 @@ export interface Timeline {
   zoomSegments: ZoomSegment[];
 }
 
-// --- Настройки ---
+// Настройки
 
 export interface CursorSettings {
   /** Относительный размер, 1.0 = нормальный. */
@@ -86,7 +86,7 @@ export interface ProjectSettings {
   export: ExportSettings;
 }
 
-// --- Корневой объект ---
+// Корневой объект
 
 export interface Project {
   schemaVersion: typeof PROJECT_SCHEMA_VERSION;
@@ -108,7 +108,7 @@ export interface Project {
   settings: ProjectSettings;
 }
 
-// --- Фабрики / дефолты ---
+// Фабрики / дефолты
 
 export function defaultCursorSettings(): CursorSettings {
   return { size: 1.0, color: "#FFFFFF", smoothingFactor: 0.8 };

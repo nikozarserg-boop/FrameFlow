@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import type { Screen } from "../App";
 import LanguageSwitcher from "./LanguageSwitcher";
 import ThemeSwitcher from "./ThemeSwitcher";
+import faviconUrl from "../favicon.png";
 import "./Navigation.css";
 
 interface NavigationProps {
@@ -160,11 +161,10 @@ export default function Navigation({ currentScreen, onNavigate }: NavigationProp
           onDoubleClick={() => handleToggleMaximize()}
         >
           <div className="nav-brand-mark">
-            <img className="nav-brand-mark-img" src="/favicon.png" alt="FrameFlow logo" />
+            <img className="nav-brand-mark-img" src={faviconUrl} alt="FrameFlow logo" />
           </div>
           <div className="nav-brand-copy">
             <span className="nav-title">FrameFlow</span>
-            <span className="nav-subtitle">Operator Grid</span>
           </div>
         </div>
 

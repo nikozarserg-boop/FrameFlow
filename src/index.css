@@ -29,7 +29,7 @@
   --radius-lg: 16px;
   --radius-pill: 999px;
 
-  /* Backward-compatible aliases used by existing screens. */
+  /* Обратно-совместимые псевдонимы, используемые существующими экранами. */
   --bg-primary: var(--app-bg);
   --bg-secondary: var(--surface-1);
   --bg-tertiary: var(--surface-2);
@@ -42,7 +42,7 @@
   --success: var(--success-500);
   --radius: var(--radius-sm);
 
-  /* Color mode aliases */
+  /* Псевдонимы режимов цвета */
   --color-bg-primary: var(--bg-primary);
   --color-bg-secondary: var(--bg-secondary);
   --color-bg-tertiary: var(--bg-tertiary);
@@ -56,7 +56,7 @@
   --color-primary-dark: var(--ink-900);
 }
 
-/* Dark mode */
+/* Тёмный режим */
 :root.dark-mode {
   --app-bg: #0f172a;
   --surface-1: #1e293b;
@@ -81,7 +81,7 @@
   --shadow-soft: 0 6px 20px rgba(0, 0, 0, 0.3);
   --shadow-lift: 0 10px 30px rgba(0, 0, 0, 0.4);
 
-  /* Update aliases for dark mode */
+  /* Обновить псевдонимы для тёмного режима */
   --bg-primary: var(--app-bg);
   --bg-secondary: var(--surface-1);
   --bg-tertiary: var(--surface-2);
@@ -91,7 +91,7 @@
   --accent: var(--primary-500);
   --accent-hover: var(--primary-600);
 
-  /* Color mode aliases for dark */
+  /* Псевдонимы цветов для тёмного режима */
   --color-bg-quaternary: #475569;
   --color-border-hover: #64748b;
 }
@@ -178,7 +178,7 @@ textarea {
   border-radius: var(--radius-sm);
 }
 
-/* Range input styling */
+/* Стили для range input */
 input[type="range"] {
   accent-color: var(--primary-600);
   cursor: pointer;
@@ -260,7 +260,7 @@ input[type="range"]::-moz-range-thumb {
   font-family: "Fira Code", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
-/* Scrollbar styling */
+/* Стили полосы прокрутки */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -279,7 +279,7 @@ input[type="range"]::-moz-range-thumb {
   background: var(--ink-500);
 }
 
-/* Firefox scrollbar */
+/* Полоса прокрутки Firefox */
 * {
   scrollbar-color: var(--line-strong) var(--surface-2);
   scrollbar-width: thin;

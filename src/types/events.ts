@@ -25,7 +25,7 @@ export interface ScrollDelta {
   dy: number;
 }
 
-// --- Дискриминированные союзы событий ---
+// Дискриминированные союзы событий
 
 export interface MoveEvent {
   type: "move";
@@ -97,7 +97,7 @@ export interface EventsFile {
   events: InputEvent[];
 }
 
-// --- Утилиты ---
+// Утилиты
 
 /** Извлекает все click-события из потока. */
 export function getClickEvents(events: InputEvent[]): ClickEvent[] {

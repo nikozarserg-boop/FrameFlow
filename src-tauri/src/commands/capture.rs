@@ -421,7 +421,7 @@ fn camera_config_for_trigger_mode(
         AutoZoomTriggerMode::SingleClick | AutoZoomTriggerMode::CtrlClick => {
             config.min_clicks_to_activate = 1;
             // "Single click" / "Ctrl+click" should react to each valid click,
-            // so disable long coalescing/debouncing defaults.
+            // поэтому отключаем долгие стандартные значения объединения/дебаунсинга.
             config.click_cluster_gap_ms = 1;
             config.min_zoom_interval_ms = 1;
         }

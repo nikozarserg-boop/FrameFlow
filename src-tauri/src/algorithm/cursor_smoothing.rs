@@ -61,7 +61,7 @@ pub fn smooth_cursor_points(points: &[CursorPoint], smoothing_factor: f64) -> Ve
 }
 
 /// Сохранён для совместимости с предыдущим API.
-/// RDP-упрощение намеренно отключено для сохранения микродинамики руки.
+/// RDP-упрощение намеренно отключено для сохранения микромоторных движений руки.
 pub fn simplify_with_click_anchors(points: &[CursorPoint], _epsilon: f64) -> Vec<CursorPoint> {
     dedupe_points(points.to_vec())
 }

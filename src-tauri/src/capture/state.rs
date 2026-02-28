@@ -78,7 +78,7 @@ pub struct ActiveRecording {
     pub telemetry_processor: std::thread::JoinHandle<Vec<InputEvent>>,
 }
 
-/// Tauri managed recorder state.
+/// Управляемое Tauri состояние рекордера.
 pub struct RecorderState(pub Arc<Mutex<Option<ActiveRecording>>>);
 
 impl RecorderState {
