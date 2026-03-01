@@ -40,7 +40,7 @@
       "icons/32icon.ico",
       "icons/48icon.ico",
       "icons/128icon.ico",
-      "icons/236icon.ico"
+      "icons/256icon.ico"
     ],
     "externalBin": [
       "binaries/ffmpeg"
